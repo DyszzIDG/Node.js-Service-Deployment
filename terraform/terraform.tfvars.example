@@ -1,0 +1,9 @@
+# Copia este archivo como 'terraform.tfvars' y completa con tus datos reales.
+# NUNCA subas 'terraform.tfvars' a Git (ya está en el .gitignore).
+
+do_token            = "dop_v1_tu_token_secreto_de_digitalocean_aqui"
+region              = "nyc1"
+droplet_size        = "s-1vcpu-1gb"
+droplet_image       = "ubuntu-22-04-x64"
+ssh_key_name        = "mi-clave-ssh"
+ssh_public_key_path = "~/.ssh/id_ed25519.pub"
