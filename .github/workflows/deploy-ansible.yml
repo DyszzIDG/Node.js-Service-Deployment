@@ -1,0 +1,73 @@
+name: CI/CD - Deploy con Ansible (Opción 1)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  # 1. Etapa de Integración Continua (CI): Pruebas automáticas
+  test:
+    name: Ejecutar Tests Unitarios
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar tests automáticos
+        run: npm test
+
+  # 2. Etapa de Despliegue Continuo (CD): Ejecución del Playbook de Ansible
+  deploy-ansible:
+    name: Desplegar con Ansible Playbook
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Clonar código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Ansible
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
+
+      - name: Configurar clave privada SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Generar archivo de inventario dinámico
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          cat <<EOF > ansible/inventory.ini
+          [web]
+          servidor_node ansible_host=${{ secrets.SERVER_HOST }} ansible_user=${{ secrets.SERVER_USER || 'root' }}
+          EOF
+
+      - name: Ejecutar Ansible Playbook (--tags app)
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+        run: |
+          cd ansible
+          ansible-playbook node_service.yml --tags app \
+            --extra-vars "app_repo_url=https://github.com/${{ github.repository }}.git app_branch=${{ github.ref_name }}"
+
+      - name: Verificar que la aplicación esté respondiendo en HTTP (Puerto 80)
+        run: |
+          echo "Comprobando endpoint en http://${{ secrets.SERVER_HOST }}/health ..."
+          sleep 3
+          curl --fail --retry 5 --retry-delay 3 http://${{ secrets.SERVER_HOST }}/health || exit 1
+          echo "¡Despliegue verificado con éxito!"
