@@ -1,0 +1,88 @@
+---
+# Tareas principales del rol 'app'
+# Todas estas tareas llevan el tag 'app' según el requerimiento de la consigna
+
+- name: Actualizar caché de paquetes apt
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  tags: [app, setup]
+
+- name: Instalar paquetes base necesarios (curl, git, ca-certificates)
+  ansible.builtin.apt:
+    name:
+      - curl
+      - git
+      - ca-certificates
+      - gnupg
+    state: present
+  tags: [app, setup]
+
+- name: Verificar si Node.js ya está instalado
+  ansible.builtin.command: node -v
+  register: node_check
+  failed_when: false
+  changed_when: false
+  tags: [app, setup]
+
+- name: Descargar e instalar repositorio de NodeSource para Node.js {{ node_version }}.x
+  ansible.builtin.shell: |
+    curl -fsSL https://deb.nodesource.com/setup_{{ node_version }}.x | bash -
+  when: node_check.rc != 0
+  tags: [app, setup]
+
+- name: Instalar Node.js y npm
+  ansible.builtin.apt:
+    name: nodejs
+    state: present
+  tags: [app, setup]
+
+- name: Asegurar que el directorio de la aplicación existe
+  ansible.builtin.file:
+    path: "{{ app_dest_dir }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0755"
+  tags: [app]
+
+- name: Clonar o actualizar el repositorio con la app Node.js
+  ansible.builtin.git:
+    repo: "{{ app_repo_url }}"
+    dest: "{{ app_dest_dir }}"
+    version: "{{ app_branch }}"
+    force: true
+  notify: Restart node service
+  tags: [app]
+
+- name: Instalar dependencias de producción de Node.js (npm install)
+  ansible.builtin.command: npm install --omit=dev
+  args:
+    chdir: "{{ app_dest_dir }}"
+  tags: [app]
+
+- name: Configurar servicio systemd para la aplicación Node.js
+  ansible.builtin.template:
+    src: node_service.service.j2
+    dest: "/etc/systemd/system/{{ systemd_service_name }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart node service
+  tags: [app]
+
+- name: Habilitar e iniciar el servicio systemd
+  ansible.builtin.systemd:
+    name: "{{ systemd_service_name }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+  tags: [app]
+
+- name: Esperar a que la app responda en el puerto {{ app_port }}
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: "{{ app_port }}"
+    timeout: 30
+    delay: 2
+  tags: [app]

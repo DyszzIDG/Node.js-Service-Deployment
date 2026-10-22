@@ -1,0 +1,20 @@
+[Unit]
+Description=Node.js HTTP Service
+After=network.target
+
+[Service]
+Type=simple
+User={{ app_user }}
+WorkingDirectory={{ app_dest_dir }}
+Environment=PORT={{ app_port }}
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+# Permite enlazar puertos privilegiados como el puerto 80 sin requerir privilegios de superusuario
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target

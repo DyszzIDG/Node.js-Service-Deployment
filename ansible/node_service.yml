@@ -1,0 +1,9 @@
+---
+- name: Implementar servicio Node.js en servidor remoto
+  hosts: web
+  become: true
+  gather_facts: true
+
+  roles:
+    - role: app
+      tags: app
