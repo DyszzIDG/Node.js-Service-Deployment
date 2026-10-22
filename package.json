@@ -1,0 +1,23 @@
+{
+  "name": "node-service",
+  "version": "1.0.0",
+  "description": "Simple Node.js service for CI/CD deployment with GitHub Actions and Ansible",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "nodejs",
+    "devops",
+    "ansible",
+    "terraform",
+    "github-actions"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.22.3"
+  }
+}
