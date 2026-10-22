@@ -5,7 +5,7 @@ app_name: "node-service"
 app_port: 80
 app_user: "root"
 app_dest_dir: "/opt/node-service"
-app_repo_url: "https://github.com/TU_USUARIO/TU_REPOSITORIO.git"
+app_repo_url: "https://github.com/DyszzIDG/Node.js-Service-Deployment.git"
 app_branch: "main"
 node_version: "20"
 systemd_service_name: "node_service"
