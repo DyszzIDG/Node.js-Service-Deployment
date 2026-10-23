@@ -1,6 +1,9 @@
 # Implementación del servicio Node.js (DevOps CI/CD Pipeline)
 
-Este proyecto implementa una solución completa de **DevOps y CI/CD** para desplegar un microservicio Node.js en un servidor en la nube (DigitalOcean Droplet / VPS Linux) en el **puerto 80**.
+> 🚀 **Live Demo:** [https://node-js-service-deployment.onrender.com](https://node-js-service-deployment.onrender.com)  
+> 🩺 **Health Check:** [https://node-js-service-deployment.onrender.com/health](https://node-js-service-deployment.onrender.com/health)
+
+Este proyecto implementa una solución completa de **DevOps y CI/CD** para desplegar un microservicio Node.js en un servidor en la nube (DigitalOcean Droplet / VPS Linux / Cloud PaaS) en el **puerto 80**.
 
 El flujo integra:
 * **Node.js + Express**: Servicio web con endpoint `/` que responde `"Hello, world!"` y `/health` para chequeos de salud.
